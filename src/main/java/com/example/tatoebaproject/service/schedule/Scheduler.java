@@ -27,7 +27,6 @@ public class Scheduler {
         if (telegramUpdateDTO != null) {
             String s = telegramUpdateDTO.toString();
             System.out.println(s);
-
         }
     }
 }
