@@ -18,11 +18,11 @@ public class JsoupUtil {
         Document document = Jsoup.connect(url).get();
         Elements div = document.select("div");
         String attr = div.attr("ng-init");
-        System.out.println(attr);
+//        System.out.println(attr);
         String[] string = attr.split("vm.init\\(\\[],");
         String[] split = string[1].split(", \\[\\{");
         String result = split[0];
-        System.out.println(result);
+//        System.out.println(result);
 
         TatoebaObject tatoebaObject = new ObjectMapper().readValue(result, TatoebaObject.class);
         String text = tatoebaObject.getText();

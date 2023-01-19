@@ -24,10 +24,11 @@ public class Scheduler {
     @Scheduled(fixedRateString = "500")
     public void getTelegramUpdates() throws IOException {
         TelegramUpdateDTO telegramUpdateDTO = messageReceiverService.getUpdates();
-        if (telegramUpdateDTO != null) {
-            String s = telegramUpdateDTO.toString();
-            System.out.println(s);
-        }
+//        if (telegramUpdateDTO != null) {
+//            String s = telegramUpdateDTO.toString();
+//            System.out.println(s);
+//        }
+
     }
 }
 
