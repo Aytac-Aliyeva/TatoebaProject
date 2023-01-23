@@ -1,5 +1,6 @@
 package com.example.tatoebaproject.service.schedule;
 
+import com.example.tatoebaproject.telegram.dto.TelegramResponseType;
 import com.example.tatoebaproject.telegram.update.TatoebaObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
@@ -12,7 +13,7 @@ import java.io.IOException;
 @Component
 public class JsoupUtil {
 
-    public void jsoupAction(String word) throws IOException {
+    public TelegramResponseType jsoupAction(String word) throws IOException {
 
         String url = "https://tatoeba.org/en/sentences/search?" + "from=" + "eng" + "&query=" + word + "&to=" + "tur";
         Document document = Jsoup.connect(url).get();
@@ -30,5 +31,13 @@ public class JsoupUtil {
 
         String text2 = tatoebaObject.getTranslations().get(0).get(0).text;
         System.out.println(text2);
+
+
+       return TelegramResponseType.builder()
+                .fromLanguage(text)
+                .toLanguage(text2)
+
+                .build();
+
     }
 }

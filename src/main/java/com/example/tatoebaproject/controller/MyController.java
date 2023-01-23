@@ -1,17 +1,23 @@
 package com.example.tatoebaproject.controller;
 
-import com.example.tatoebaproject.service.MessageReceiverService;
-import com.example.tatoebaproject.telegram.update.TelegramUpdateDTO;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.example.tatoebaproject.service.DatabaseService;
+import com.example.tatoebaproject.service.MessageReceiverServiceImp;
+import com.example.tatoebaproject.telegram.update.TelegramResponseDTO;
+import com.example.tatoebaproject.telegram.update.TelegramResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class MyController {
 
-    private final MessageReceiverService messageReceiverService;
+    private final MessageReceiverServiceImp messageReceiverServiceImp;
+    private final DatabaseService databaseService;
 
-    public MyController(MessageReceiverService messageReceiverService) {
-        this.messageReceiverService = messageReceiverService;
+
+    public MyController(MessageReceiverServiceImp messageReceiverService, DatabaseService databaseService) {
+        this.messageReceiverServiceImp = messageReceiverService;
+        this.databaseService = databaseService;
     }
 
 
@@ -25,11 +31,12 @@ public class MyController {
 //        return new ResponseEntity<>(response, HttpStatus.OK);
 //    }
 
-//    @GetMapping("/qondarma")
-//    public void qondarma(){
-//        TelegramUpdateDTO updates = messageReceiverService.getUpdates();
 
+    @PostMapping("myTelegram")
+    public void getMessage(@RequestBody TelegramResponseDTO telegramResponseDTO) {
+        databaseService.saveToDb(telegramResponseDTO);
 
     }
+}
 
 
