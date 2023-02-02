@@ -1,17 +1,16 @@
 package com.example.tatoebaproject.telegram.dto;
 
 import lombok.Builder;
-import lombok.Data;
 
 
 @Builder
-public class TelegramResponseType {
+public class TatoebaResponse {
     String fromLanguage;
     String toLanguage;
 
     @Override
     public String toString() {
-        return  fromLanguage + '\n' +
+        return fromLanguage + '\n' +
                 toLanguage;
     }
 }

@@ -1,10 +1,7 @@
-package com.example.tatoebaproject.telegram.update;
+package com.example.tatoebaproject.telegram.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 
 @Entity
 @Builder
@@ -16,6 +13,6 @@ public class TelegramResponseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String myText;
+    private String text;
 
 }
