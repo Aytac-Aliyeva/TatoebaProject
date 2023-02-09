@@ -13,9 +13,9 @@ import java.io.IOException;
 @Component
 public class JsoupUtil {
 
-    public TatoebaResponse jsoupAction(String word) throws IOException {
+    public TatoebaResponse jsoupAction(String word, String from, String to) throws IOException {
 
-        String url = "https://tatoeba.org/en/sentences/search?" + "from=" + "eng" + "&query=" + word + "&to=" + "tur";
+        String url = "https://tatoeba.org/en/sentences/search?from=" + from + "&query=" + word + "&to=" + to;
         Document document = Jsoup.connect(url).get();
         Elements div = document.select("div");
         String attr = div.attr("ng-init");
@@ -23,7 +23,7 @@ public class JsoupUtil {
         System.out.println(attr);
 
 
-        String[] string = attr.split("vm.init\\(\\[], );
+        String[] string = attr.split("vm.init\\(\\[], ");
         String[] split = string[1].split(", \\[\\{");
         String result = split[0];
 //        System.out.println(result);
@@ -32,15 +32,17 @@ public class JsoupUtil {
         String text = tatoebaObject.getText();
         System.out.println(text);
 
-        String text2 = tatoebaObject.getTranslations().get(0).get(0).text;
-        System.out.println(text2);
-
+        String translation;
+        if (tatoebaObject.getTranslations().get(0).size() > 0) {
+            translation = tatoebaObject.getTranslations().get(0).get(0).getText();
+        } else {
+            translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+        }
 
 
         return TatoebaResponse.builder()
                 .fromLanguage(text)
-                .toLanguage(text2)
-
+                .toLanguage(translation)
                 .build();
 
     }

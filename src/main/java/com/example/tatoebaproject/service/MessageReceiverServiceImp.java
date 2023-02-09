@@ -6,7 +6,6 @@ import com.example.tatoebaproject.service.schedule.JsoupUtil;
 import com.example.tatoebaproject.telegram.dto.TatoebaResponse;
 import com.example.tatoebaproject.telegram.entity.ChatStage;
 import com.example.tatoebaproject.telegram.entity.SaveChiocesToDBEntity;
-import com.example.tatoebaproject.telegram.entity.TelegramResponseEntity;
 import com.example.tatoebaproject.telegram.send.SendMessageResponseDTO;
 import com.example.tatoebaproject.telegram.send.text.SendMessageDTO;
 import com.example.tatoebaproject.telegram.update.TelegramResponseDTO;
@@ -27,9 +26,9 @@ public class MessageReceiverServiceImp {
 
 
     @Value("${base-url}")
-    java.lang.String baseUrl;
+    String baseUrl;
     @Value("${api-token}")
-    java.lang.String token;
+    String token;
     private Long offset = null;
 
     public MessageReceiverServiceImp(JsoupUtil jsoupUtil, TatoRepository tatoRepository, SaveChoiceToDbRepository saveChoiceToDbRepository) {
@@ -39,10 +38,7 @@ public class MessageReceiverServiceImp {
     }
 
     public TelegramUpdateDTO getUpdates() throws IOException {
-
-        java.lang.String url = baseUrl + "/bot" + token + "/getupdates";
-
-
+        String url = baseUrl + "/bot" + token + "/getupdates";
         if (offset != null)
             url = url + "?offset=" + offset;
         RestTemplate restTemplate = new RestTemplate();
@@ -50,99 +46,125 @@ public class MessageReceiverServiceImp {
 
         if (telegramResponseDTO.getResult().size() > 0) {
             if (telegramResponseDTO.getResult().get(0).getMessageDTO() != null) {
-                offset = telegramResponseDTO.getResult().get(0).getUpdateId() + 1;
-                saveToDb(telegramResponseDTO);
-                saveChoicesToDb(telegramResponseDTO);
+                TelegramUpdateDTO telegramUpdateDTO = telegramResponseDTO.getResult().get(0);
+                offset = telegramUpdateDTO.getUpdateId() + 1;
+                String text = telegramUpdateDTO.getMessageDTO().getText();
+                System.out.println(text);
+                Long id = telegramUpdateDTO.getMessageDTO().getChat().getId();
 
-                TatoebaResponse text = jsoupUtil.jsoupAction(telegramResponseDTO.getResult().get(0).getMessageDTO().getText());
+                SaveChiocesToDBEntity byChatId = saveChoiceToDbRepository.findByChatId(id);
 
-                Long id = telegramResponseDTO.getResult().get(0).getMessageDTO().getChat().getId();
-//                sendMessage(text, id);
+                Boolean extracted = extracted(text, id, byChatId);
 
-                return telegramResponseDTO.getResult().get(0);
+                if (byChatId != null && extracted) {
+                    String chatStage = byChatId.getChatStage();
+                    if (chatStage.equals(ChatStage.FROM_LANG.name())) {
+                        byChatId.setFromLang(text);
+                        byChatId.setChatStage(ChatStage.TO_LANG.name());
+                        saveChoiceToDbRepository.save(byChatId);
+                        sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
+                    } else if (chatStage.equals(ChatStage.TO_LANG.name())) {
+                        byChatId.setToLang(text);
+                        saveChoiceToDbRepository.save(byChatId);
+                        byChatId.setChatStage(ChatStage.COMPLETED.name());
+                        sendMessage("Seçiminiz bazaya uğurla yazıldı.", id);
+                    } else if (chatStage.equals(ChatStage.COMPLETED.name())) {
+                        byChatId.setToLang(text);
+                        String fromLang = byChatId.getFromLang();
+                        String toLang = byChatId.getToLang();
+                        TatoebaResponse tatoebaResponse = jsoupUtil.jsoupAction(text, fromLang, toLang );
+                        sendMessage(tatoebaResponse.toString(), id);
+
+                    }
+                }
             }
         }
         return null;
 
+    }
+    private Boolean extracted(String text, Long id, SaveChiocesToDBEntity byChatId) throws IOException {
+        switch (text) {
+            case "/start" -> {
+                SaveChiocesToDBEntity saveChiocesToDBEntity = SaveChiocesToDBEntity.builder()
+                        .chatId(id)
+                        .chatStage(ChatStage.FROM_LANG.name())
+                        .build();
+                if (byChatId == null) {
+                    saveChoiceToDbRepository.save(saveChiocesToDBEntity);
+                } else {
+                    byChatId.setChatStage(ChatStage.FROM_LANG.name());
+                    saveChoiceToDbRepository.save(byChatId);
+                }
+                sendMessage("Salam, Tatoebaya xoş gəldiniz. Zəhmət olmasa hansı dildən tərcümə etmək istədiyinizi seçin", id);
+                return false;
+            }
+            case "/fromlang" -> {
+                SaveChiocesToDBEntity saveChiocesToDBEntity = SaveChiocesToDBEntity.builder()
+                        .chatId(id)
+                        .chatStage(ChatStage.FROM_LANG.name())
+                        .build();
+                if (byChatId == null) {
+                    saveChoiceToDbRepository.save(saveChiocesToDBEntity);
+                } else {
+                    byChatId.setChatStage(ChatStage.FROM_LANG.name());
+                    saveChoiceToDbRepository.save(byChatId);
+                }
+                sendMessage("Zəhmət olmasa, hansı dildən tərcümə etmək istədiyinizi seçin.", id);
+                return false;
 
+            }
+            case "/tolang" -> {
+                SaveChiocesToDBEntity saveChiocesToDBEntity = SaveChiocesToDBEntity.builder()
+                        .chatId(id)
+                        .chatStage(ChatStage.TO_LANG.name())
+                        .build();
+                saveChoiceToDbRepository.save(saveChiocesToDBEntity);
+                if (byChatId == null) {
+                    saveChoiceToDbRepository.save(saveChiocesToDBEntity);
+                } else {
+                    byChatId.setChatStage(ChatStage.TO_LANG.name());
+                    saveChoiceToDbRepository.save(byChatId);
+                }
+                sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
+
+
+            }
+        }
+        return true;
     }
 
 
-    public void sendMessage(java.lang.String text, Long id) throws IOException {
-        java.lang.String url2 = baseUrl + "/bot" + token + "/sendMessage";
 
 
+    public void sendMessage(String text, Long id) throws IOException {
+        String url2 = baseUrl + "/bot" + token + "/sendMessage";
         SendMessageDTO dto = SendMessageDTO.builder()
                 .chatId(id)
                 .text(text)
                 .build();
-
-
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.postForObject(url2, dto, SendMessageResponseDTO.class);
 
     }
 
 
-    public void saveToDb(TelegramResponseDTO telegramResponseDTO) {
-        java.lang.String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
-        TelegramResponseEntity telegramResponseEntity = TelegramResponseEntity.builder()
-                .text(text)
-                .build();
-        tatoRepository.save(telegramResponseEntity);
-    }
+//    public void saveToDb(TelegramResponseDTO telegramResponseDTO) {
+//        java.lang.String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
+//        TelegramResponseEntity telegramResponseEntity = TelegramResponseEntity.builder()
+//                .text(text)
+//                .build();
+//        tatoRepository.save(telegramResponseEntity);
+//    }
+
+//
+//    public void saveChoicesToDb(TelegramResponseDTO telegramResponseDTO) throws IOException {
+//        String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
+//        Long id = telegramResponseDTO.getResult().get(0).getMessageDTO().getChat().getId();
+//
+//
+//    }
 
 
-    public void saveChoicesToDb(TelegramResponseDTO telegramResponseDTO) throws IOException {
-        java.lang.String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
-        Long id = telegramResponseDTO.getResult().get(0).getMessageDTO().getChat().getId();
-
-
-        SaveChiocesToDBEntity byChatId = saveChoiceToDbRepository.findByChatId(id);
-
-
-        if (text.equals("/start")) {
-            sendMessage("Salam, Tatoebaya xoş gəldiniz.", id);
-        } else if (text.equals("/fromlang")) {
-            SaveChiocesToDBEntity saveChiocesToDBEntity = SaveChiocesToDBEntity.builder()
-                    .chatId(id)
-                    .chatStage(ChatStage.FROM_LANG.name())
-                    .build();
-            if (byChatId == null) {
-                saveChoiceToDbRepository.save(saveChiocesToDBEntity);
-            } else {
-                saveChoiceToDbRepository.save(byChatId);
-            }
-            sendMessage("Zəhmət olmasa, hansı dildən tərcümə etmək istədiyinizi seçin.", id);
-
-        } else if (text.equals("/tolang")) {
-            SaveChiocesToDBEntity saveChiocesToDBEntity = SaveChiocesToDBEntity.builder()
-                    .chatId(id)
-                    .chatStage(ChatStage.TO_LANG.name())
-                    .build();
-            saveChoiceToDbRepository.save(saveChiocesToDBEntity);
-            if (byChatId == null) {
-                saveChoiceToDbRepository.save(saveChiocesToDBEntity);
-            } else {
-                saveChoiceToDbRepository.save(byChatId);
-            }
-            sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
-
-        }
-
-        if (byChatId != null) {
-            java.lang.String chatStage = byChatId.getChatStage();
-            if (chatStage.equals("FROM_LANG")) {
-                byChatId.setFromLang(text);
-                saveChoiceToDbRepository.save(byChatId);
-            } else if (chatStage.equals("TO_LANG")) {
-                byChatId.setToLang(text);
-                saveChoiceToDbRepository.save(byChatId);
-
-            }
-        }
-
-    }
 }
 
 
