@@ -60,19 +60,26 @@ public class MessageReceiverServiceImp {
                     String chatStage = byChatId.getChatStage();
                     if (chatStage.equals(ChatStage.FROM_LANG.name())) {
                         byChatId.setFromLang(text);
-                        byChatId.setChatStage(ChatStage.TO_LANG.name());
-                        saveChoiceToDbRepository.save(byChatId);
-                        sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
+                        String toLang = byChatId.getToLang();
+                        if (toLang == null) {
+                            byChatId.setChatStage(ChatStage.TO_LANG.name());
+                            saveChoiceToDbRepository.save(byChatId);
+                            sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
+                        } else {
+                            byChatId.setChatStage(ChatStage.COMPLETED.name());
+                            saveChoiceToDbRepository.save(byChatId);
+                            sendMessage("Seçiminiz bazaya uğurla yazıldı.", id);
+                        }
+
                     } else if (chatStage.equals(ChatStage.TO_LANG.name())) {
                         byChatId.setToLang(text);
-                        saveChoiceToDbRepository.save(byChatId);
                         byChatId.setChatStage(ChatStage.COMPLETED.name());
+                        saveChoiceToDbRepository.save(byChatId);
                         sendMessage("Seçiminiz bazaya uğurla yazıldı.", id);
                     } else if (chatStage.equals(ChatStage.COMPLETED.name())) {
-                        byChatId.setToLang(text);
                         String fromLang = byChatId.getFromLang();
                         String toLang = byChatId.getToLang();
-                        TatoebaResponse tatoebaResponse = jsoupUtil.jsoupAction(text, fromLang, toLang );
+                        TatoebaResponse tatoebaResponse = jsoupUtil.jsoupAction(text, fromLang, toLang);
                         sendMessage(tatoebaResponse.toString(), id);
 
                     }
@@ -82,6 +89,7 @@ public class MessageReceiverServiceImp {
         return null;
 
     }
+
     private Boolean extracted(String text, Long id, SaveChiocesToDBEntity byChatId) throws IOException {
         switch (text) {
             case "/start" -> {
@@ -126,14 +134,12 @@ public class MessageReceiverServiceImp {
                     saveChoiceToDbRepository.save(byChatId);
                 }
                 sendMessage("Zəhmət olmasa, hansı dilə tərcümə etmək istədiyinizi seçin.", id);
-
+                return false;
 
             }
         }
         return true;
     }
-
-
 
 
     public void sendMessage(String text, Long id) throws IOException {

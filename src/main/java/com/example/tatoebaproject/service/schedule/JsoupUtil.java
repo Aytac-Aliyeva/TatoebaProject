@@ -9,41 +9,47 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JsoupUtil {
 
     public TatoebaResponse jsoupAction(String word, String from, String to) throws IOException {
-
-        String url = "https://tatoeba.org/en/sentences/search?from=" + from + "&query=" + word + "&to=" + to;
-        Document document = Jsoup.connect(url).get();
-        Elements div = document.select("div");
-        String attr = div.attr("ng-init");
-
-        System.out.println(attr);
-
-
-        String[] string = attr.split("vm.init\\(\\[], ");
-        String[] split = string[1].split(", \\[\\{");
-        String result = split[0];
+        try {
+            String url = "https://tatoeba.org/en/sentences/search?from=" + from + "&query=" + word + "&to=" + to;
+            Document document = Jsoup.connect(url).get();
+            Elements div = document.select("div");
+            List<String> strings = div.eachAttr("ng-init");
+            int limit = strings.size();
+            int random = (int) (Math.random() * limit );
+            String attr = strings.get(random);
+            String[] string = attr.split("vm.init\\(\\[], ");
+            String[] split = string[1].split(", \\[\\{");
+            String result = split[0];
 //        System.out.println(result);
 
-        TatoebaObject tatoebaObject = new ObjectMapper().readValue(result, TatoebaObject.class);
-        String text = tatoebaObject.getText();
-        System.out.println(text);
+            TatoebaObject tatoebaObject = new ObjectMapper().readValue(result, TatoebaObject.class);
+            String text = tatoebaObject.getText();
+            System.out.println(text);
 
-        String translation;
-        if (tatoebaObject.getTranslations().get(0).size() > 0) {
-            translation = tatoebaObject.getTranslations().get(0).get(0).getText();
-        } else {
-            translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+            String translation;
+            if (tatoebaObject.getTranslations().get(0).size() > 0) {
+                translation = tatoebaObject.getTranslations().get(0).get(0).getText();
+            } else {
+                translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+            }
+
+
+            return TatoebaResponse.builder()
+                    .fromLanguage(text)
+                    .toLanguage(translation)
+                    .build();
+
+        } catch (Exception e) {
+            return TatoebaResponse.builder()
+                    .fromLanguage("Could not find any result")
+                    .toLanguage("")
+                    .build();
         }
-
-
-        return TatoebaResponse.builder()
-                .fromLanguage(text)
-                .toLanguage(translation)
-                .build();
-
     }
 }
