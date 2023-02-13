@@ -6,12 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-
+@Service
 public class TatoService {
-        public TatoebaResponse jsoupAction(String word, String from, String to) throws IOException {
+        public String jsoup(String word, String from, String to) throws IOException {
                 try {
                         String url = "https://tatoeba.org/en/sentences/search?from=" + from + "&query=" + word + "&to=" + to;
                         Document document = Jsoup.connect(url).get();
@@ -36,7 +37,10 @@ public class TatoService {
                                 translation = tatoebaObject.getTranslations().get(1).get(0).getText();
                         }
 
+                } catch (IOException e) {
+                        throw new RuntimeException(e);
                 }
+                return word;
         }
 }
 

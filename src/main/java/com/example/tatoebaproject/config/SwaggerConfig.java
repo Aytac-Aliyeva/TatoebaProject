@@ -29,9 +29,9 @@ public class SwaggerConfig {
                 .build();
     }
 
-//    private Predicate<String> postPaths() {
-//        return or(regex("/api/posts.*"), regex("/.*"));
-//    }
+    private Predicate<String> postPaths() {
+        return or(regex("/api/posts.*"), regex("/.*"));
+    }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder().title("Tatoeba Api")
