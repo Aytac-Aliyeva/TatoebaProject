@@ -10,12 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 public class TatoebaProjectApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(TatoebaProjectApplication.class, args);
 
     }
-
-
-
 }

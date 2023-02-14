@@ -20,7 +20,6 @@ public class TatoController {
         this.tatoService = tatoService;
     }
 
-
     @GetMapping("/")
     public String translate(@RequestParam String from, @RequestParam String to, @RequestParam String text) throws IOException {
         String jsoup = tatoService.jsoup(from, to, text);

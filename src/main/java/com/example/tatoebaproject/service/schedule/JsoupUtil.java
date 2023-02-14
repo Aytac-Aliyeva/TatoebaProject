@@ -1,42 +1,33 @@
 package com.example.tatoebaproject.service.schedule;
 
+import com.example.tatoebaproject.service.JsoupGenerator;
 import com.example.tatoebaproject.telegram.dto.TatoebaResponse;
 import com.example.tatoebaproject.telegram.update.TatoebaObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 public class JsoupUtil {
+    private final JsoupGenerator jsoupGenerator;
 
-    public TatoebaResponse jsoupAction(String word, String from, String to) throws IOException {
+    public JsoupUtil(JsoupGenerator jsoupGenerator) {
+        this.jsoupGenerator = jsoupGenerator;
+    }
+
+    public TatoebaResponse jsoupAction(String word, String from, String to) throws
+            IOException {
         try {
-            String url = "https://tatoeba.org/en/sentences/search?from=" + from + "&query=" + word + "&to=" + to;
-            Document document = Jsoup.connect(url).get();
-            Elements div = document.select("div");
-            List<String> strings = div.eachAttr("ng-init");
-            int limit = strings.size();
-            int random = (int) (Math.random() * limit );
-            String attr = strings.get(random);
-            String[] string = attr.split("vm.init\\(\\[], ");
-            String[] split = string[1].split(", \\[\\{");
-            String result = split[0];
-//        System.out.println(result);
+            TatoebaObject tatoeabObject = jsoupGenerator.jsoup(word, from, to);
 
-            TatoebaObject tatoebaObject = new ObjectMapper().readValue(result, TatoebaObject.class);
-            String text = tatoebaObject.getText();
+            String text = tatoeabObject.getText();
             System.out.println(text);
 
             String translation;
-            if (tatoebaObject.getTranslations().get(0).size() > 0) {
-                translation = tatoebaObject.getTranslations().get(0).get(0).getText();
+            if (tatoeabObject.getTranslations().get(0).size() > 0) {
+                translation = tatoeabObject.getTranslations().get(0).get(0).getText();
             } else {
-                translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+                translation = tatoeabObject.getTranslations().get(1).get(0).getText();
             }
 
 
