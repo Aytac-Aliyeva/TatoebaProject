@@ -5,8 +5,6 @@ import com.example.tatoebaproject.telegram.dto.TatoebaResponse;
 import com.example.tatoebaproject.telegram.update.TatoebaObject;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 @Component
 public class JsoupUtil {
     private final JsoupGenerator jsoupGenerator;
@@ -15,21 +13,15 @@ public class JsoupUtil {
         this.jsoupGenerator = jsoupGenerator;
     }
 
-    public TatoebaResponse jsoupAction(String word, String from, String to) throws
-            IOException {
+    public TatoebaResponse jsoupAction(String word, String from, String to) {
         try {
             TatoebaObject tatoeabObject = jsoupGenerator.jsoup(word, from, to);
 
             String text = tatoeabObject.getText();
-            System.out.println(text);
+//            System.out.println(text);
 
-            String translation;
-            if (tatoeabObject.getTranslations().get(0).size() > 0) {
-                translation = tatoeabObject.getTranslations().get(0).get(0).getText();
-            } else {
-                translation = tatoeabObject.getTranslations().get(1).get(0).getText();
-            }
 
+            String translation = tatoeabObject.getTranslations().get(0).get(0).getText();
 
             return TatoebaResponse.builder()
                     .fromLanguage(text)
