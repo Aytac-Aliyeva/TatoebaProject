@@ -1,4 +1,4 @@
-package com.example.tatoebaproject.service;
+package com.example.tatoebaproject.security.service;
 
 import com.example.tatoebaproject.repository.SaveSignupInfoToDbRepo;
 import com.example.tatoebaproject.security.entity.SignupEntity;

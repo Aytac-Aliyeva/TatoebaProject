@@ -152,25 +152,6 @@ public class MessageReceiverServiceImp {
         restTemplate.postForObject(url2, dto, SendMessageResponseDTO.class);
 
     }
-
-
-//    public void saveToDb(TelegramResponseDTO telegramResponseDTO) {
-//        java.lang.String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
-//        TelegramResponseEntity telegramResponseEntity = TelegramResponseEntity.builder()
-//                .text(text)
-//                .build();
-//        tatoRepository.save(telegramResponseEntity);
-//    }
-
-//
-//    public void saveChoicesToDb(TelegramResponseDTO telegramResponseDTO) throws IOException {
-//        String text = telegramResponseDTO.getResult().get(0).getMessageDTO().getText();
-//        Long id = telegramResponseDTO.getResult().get(0).getMessageDTO().getChat().getId();
-//
-//
-//    }
-
-
 }
 
 

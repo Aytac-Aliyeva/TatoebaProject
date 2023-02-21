@@ -1,7 +1,8 @@
 package com.example.tatoebaproject.security.controller;
 
 import com.example.tatoebaproject.repository.SaveSignupInfoToDbRepo;
-import com.example.tatoebaproject.security.config.JwtUtils;
+//import com.example.tatoebaproject.security.config.JwtUtils;
+import com.example.tatoebaproject.security.config.JwtTokenUtil;
 import com.example.tatoebaproject.security.dto.AuthenticationRequest;
 import com.example.tatoebaproject.security.dto.SignInRequest;
 import com.example.tatoebaproject.security.entity.SignupEntity;
@@ -26,7 +27,7 @@ public class AuthenticationController {
 
     private final SaveSignupInfoToDbRepo saveSignupInfoToDbRepo;
 
-    private final JwtUtils jwtUtils;
+    private final JwtTokenUtil jwtUtils;
 
     private final UserDetailsService userDetailsService;
 
@@ -53,7 +54,7 @@ public class AuthenticationController {
                 .role(request.getRole())
                 .build();
         saveSignupInfoToDbRepo.save(signupEntity);
-        return ResponseEntity.status(200).body("Successfully saved to database");
+        return ResponseEntity.ok("Successfully saved to database");
     }
 
 }

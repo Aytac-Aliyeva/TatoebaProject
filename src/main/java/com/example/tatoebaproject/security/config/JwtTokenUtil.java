@@ -17,7 +17,7 @@ import java.util.function.Function;
 public class JwtTokenUtil implements Serializable {
 
 	private static final long serialVersionUID = -2550185165626007488L;
-	
+
 	public static final long JWT_TOKEN_VALIDITY = 5*60*60;
 
 	@Value("${jwt.secret}")
@@ -53,7 +53,6 @@ public class JwtTokenUtil implements Serializable {
 		// here you specify tokens, for that the expiration is ignored
 		return false;
 	}
-
 	public String generateToken(UserDetails userDetails) {
 		Map<String, Object> claims = new HashMap<>();
 		return doGenerateToken(claims, userDetails.getUsername());

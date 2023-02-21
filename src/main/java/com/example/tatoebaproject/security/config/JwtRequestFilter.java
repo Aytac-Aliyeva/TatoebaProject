@@ -1,6 +1,6 @@
 package com.example.tatoebaproject.security.config;
 
-import com.example.tatoebaproject.service.JwtUserDetailsService;
+import com.example.tatoebaproject.security.service.JwtUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
