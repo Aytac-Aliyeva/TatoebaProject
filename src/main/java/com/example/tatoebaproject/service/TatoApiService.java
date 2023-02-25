@@ -17,23 +17,31 @@ public class TatoApiService {
     }
 
     public String jsoup(String word, String from, String to) throws IOException {
-        TatoebaObject tatoebaObject = jsoupGenerator.jsoup(word, from, to);
-        String text = tatoebaObject.getText();
+        try {
+            TatoebaObject tatoebaObject = jsoupGenerator.jsoup(word, from, to);
+            String text = tatoebaObject.getText();
 
-        String translation;
-        if (tatoebaObject.getTranslations().get(0).size() > 0) {
-            translation = tatoebaObject.getTranslations().get(0).get(0).getText();
-        } else {
-            translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+            String translation;
+            if (tatoebaObject.getTranslations().get(0).size() > 0) {
+                translation = tatoebaObject.getTranslations().get(0).get(0).getText();
+            } else {
+                translation = tatoebaObject.getTranslations().get(1).get(0).getText();
+            }
+
+
+            return TatoebaResponse.builder()
+                    .fromLanguage(text)
+                    .toLanguage(translation)
+                    .build().toString();
+        } catch (Exception e) {
+            return TatoebaResponse.builder()
+                    .fromLanguage("Could not find any result")
+                    .toLanguage("")
+                    .build().toString();
         }
-
-
-        return TatoebaResponse.builder()
-                .fromLanguage(text)
-                .toLanguage(translation)
-                .build().toString();
     }
 }
+
 
 
 
