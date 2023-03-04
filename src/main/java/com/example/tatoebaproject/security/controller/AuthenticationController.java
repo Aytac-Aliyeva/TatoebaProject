@@ -2,6 +2,7 @@ package com.example.tatoebaproject.security.controller;
 
 import com.example.tatoebaproject.repository.SaveSignupInfoToDbRepo;
 import com.example.tatoebaproject.security.config.JwtTokenUtil;
+import com.example.tatoebaproject.security.dto.AuthResponse;
 import com.example.tatoebaproject.security.dto.AuthenticationRequest;
 import com.example.tatoebaproject.security.dto.SignInRequest;
 import com.example.tatoebaproject.security.entity.SignupEntity;
@@ -33,56 +34,9 @@ public class AuthenticationController {
 
     private final UserDetailsService userDetailsService;
 
-    @PostMapping("/signin")
-    public LinkedList signin(@RequestBody SignInRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        SignupEntity byName = saveSignupInfoToDbRepo.findByName(request.getEmail());
-
-        final UserDetails userDetails = userDetailsService
-                .loadUserByUsername(byName.getName());
-
-        if (userDetails != null) {
-            String email = request.getEmail();
-            String password = request.getPassword();
-            String s = jwtUtils.generateToken(userDetails);
-            LinkedList<Object> linkedList = new LinkedList<>();
-            linkedList.add(email);
-            linkedList.add(password);
-            linkedList.add(s);
-        return linkedList;
-        }
-//        return ResponseEntity.status(400).body("Something wrong with token");
-        LinkedList<Object> linkedList = new LinkedList<>();
-        linkedList.add("Something wrong with token");
-
-        return linkedList;
-    }
 
 
-//    @PostMapping("/signin")
-//    public String signin(@RequestBody SignInRequest request) {
-//        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-//        SignupEntity byName = saveSignupInfoToDbRepo.findByName(request.getEmail());
-//
-//        final UserDetails userDetails = userDetailsService
-//                .loadUserByUsername(byName.getName());
-//
-//        if (userDetails != null) {
-//            String email = request.getEmail();
-//            String password = request.getPassword();
-//            String s = jwtUtils.generateToken(userDetails);
-//
-//            return TatoebaResponse.builder()
-//                    .toLanguage(email)
-//                    .fromLanguage(password)
-//                    .fromLanguage(s)
-//                    .build().toString();
-//        }
-//
-//        return TatoebaResponse.builder()
-//                .toLanguage("Something wrong with token")
-//                .build().toString();
-//    }
+
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody AuthenticationRequest request) {
@@ -97,6 +51,30 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body("This user already exists");
         } else saveSignupInfoToDbRepo.save(signupEntity);
         return ResponseEntity.ok("Successfully saved to database");
+    }
+
+
+    @PostMapping("/signin")
+    public AuthResponse signin(@RequestBody SignInRequest request) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        SignupEntity byName = saveSignupInfoToDbRepo.findByName(request.getEmail());
+
+        final UserDetails userDetails = userDetailsService
+                .loadUserByUsername(byName.getName());
+
+        if (userDetails != null) {
+            String email = request.getEmail();
+            String s = jwtUtils.generateToken(userDetails);
+
+            return AuthResponse.builder()
+                    .email(email)
+                    .token(s)
+                    .build();
+        }
+
+        return AuthResponse.builder()
+                .email("Something wrong with token")
+                .build();
     }
 
 }
